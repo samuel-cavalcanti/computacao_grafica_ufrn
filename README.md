@@ -9,3 +9,4 @@ Link para os exercícios do professor luiz: [Exercícios](https://www.dca.ufrn.b
 - [quarta lista](listas/4_lista)
 - [quinta lista](listas/5_lista)
 - [sexta lista](listas/6_lista)
+- [sétima lista](listas/7lista)
