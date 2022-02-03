@@ -15,3 +15,19 @@ python -m unittest discover  -v
 ```shell
 pip install -r requirements.txt
 ```
+
+### Controle do braço
+
+- A aumenta o angulo do ombro
+- a diminui o angulo do ombro
+- S aumenta o angulo do cotovelo
+- s diminui o angulo do cotovelo
+- B aumenta o angulo da base
+- b diminui o angulo da base
+- C abre a garra
+- c fecha a garra 
+
+Setinhas, esquerda, direita, frente e trás controla a visão da camera.
+
+
+![imagem_exemplo](imagem_exemplo.jpeg)
