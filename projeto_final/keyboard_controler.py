@@ -45,7 +45,8 @@ class KeyboardController:
 
             case 'c':
                 angle = arm.arm_angles.upper_claw_in_degrees
-                arm.arm_angles.upper_claw_in_degrees = -45/2 if angle <= -45/2 else angle - 5
+                min_angle = -17.0
+                arm.arm_angles.upper_claw_in_degrees = min_angle if angle <= min_angle else angle - 5
                 arm.arm_angles.bottom_claw_in_degrees = -arm.arm_angles.upper_claw_in_degrees
                 return True
             case 'C':
