@@ -35,4 +35,4 @@ python  src/main.py
 Setinhas, esquerda, direita, frente e trás controla a visão da camera.
 
 
-![imagem_exemplo](images/imagem_exemplo.jpeg)
+![imagem_exemplo](images/braco_robotico.png)

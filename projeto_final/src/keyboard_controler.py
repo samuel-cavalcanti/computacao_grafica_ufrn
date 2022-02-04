@@ -60,5 +60,5 @@ class KeyboardController:
                 camera.update_position_by_polar_system(self.__theta_xz)
 
             case glut.GLUT_KEY_RIGHT:
-                camera.theta_xz -= 2
+                self.__theta_xz -= 2
                 camera.update_position_by_polar_system(self.__theta_xz)

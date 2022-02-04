@@ -56,7 +56,7 @@ class ArmAngles:
 
     def set_angle_claw(self, angle_in_degrees: float) -> float:
         """
-            atualiza o angulo da garra mas só se o angulo for válido.
+            atualiza e retorna o angulo da garra mas só atualiza se o angulo for válido.
         """
 
         if 0 <= angle_in_degrees <= 17:
