@@ -1,7 +1,6 @@
 
 
 from pathlib import Path
-from typing import Optional
 from OpenGL import GL as gl
 from OpenGL import GLU as glu
 from OpenGL import GLUT as glut
@@ -15,34 +14,63 @@ from gl_models import arm_model, floor_model
 from arm_angles import ArmAngles
 
 
-WIDTH = 800
-HEIGHT = 600
+"""
+Por padrão vamos iniciar
+a janela em 800x600, mas
+podemos redimensiona-la
+durante a aplicação
+"""
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 600
 
-FLOOR_TEXTURE_ID: Optional[int] = None
-METAL_TEXTURE_ID: Optional[int] = None
-FLOOR_IMAGE = Path('images').joinpath('piso_2.jpeg')
-METAL_IMAGE = Path('images').joinpath('metal.jpeg')
+"""
+Para que o caminho até a image
+seja agnóstico de sistema operacional
+usamos a classe Path do python, mas
+é bom lembrar que esse script deve ser
+executado dentro do diretório projeto_final
+"""
+FLOOR_IMAGE_PATH = Path('images').joinpath('piso_2.jpeg')
+METAL_IMAGE_PATH = Path('images').joinpath('metal.jpeg')
 
 
 def reshape(width: int,  height: int):
-    global WIDTH, HEIGHT
+    """Callback chamando no momento que a tela é redimensionada"""
+    global WINDOW_WIDTH, WINDOW_HEIGHT
 
-    WIDTH = width
-    HEIGHT = height
+    WINDOW_WIDTH = width
+    WINDOW_HEIGHT = height
     print(f'width: {width} height: {height}')
+
+    """
+        ViewPort é o local da área ser renderizada pelo OpenGL
+        no caso estamos pegando a janela toda
+    """
     gl.glViewport(0, 0, width, height)
+
+    """
+        Criando uma visão em perspectiva para dar uma idea de
+        profundidade no nosso mundo 3D
+    """
     gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glLoadIdentity()
     glu.gluPerspective(70.0, width/height, 0.1, 30.0)
     gl.glMatrixMode(gl.GL_MODELVIEW)
-    glut.glutPostRedisplay()
 
 
 def opengl_init():
-    gl.glClearColor(1.0, 1.0, 1.0, 1.0)
+    """
+        É nessa função que coloquei a configuração inicial do OpenGL.
+    """
+
+    """
+        Configurado a cor que será usada para limpar a tela como um escurinho
+    """
+    gl.glClearColor(0.07, 0.13, 0.17, 1.0)
+    """ habilite a profundidade,  ou seja x,y,z"""
     gl.glEnable(gl.GL_DEPTH_TEST)
 
-    """Habilitar a textura"""
+    """Configurações para habilitar a textura"""
     gl.glEnable(gl.GL_BLEND)
     gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 
@@ -51,12 +79,19 @@ def opengl_init():
 
 
 def window_init():
-    glut.glutInitWindowPosition(0, 0)
+    """
+        Configurações iniciais do gestor de janelas GLUT
+        basicamente coloco a janela para se posicionar na
+        posição:
+            x: 400
+            y: 400
+        coloco o nome da janela e digo que ela tem profundidade e renderiza em RGBA
+    """
     glut.glutInit()
     glut.glutInitDisplayMode(
         glut.GLUT_RGBA | glut.GLUT_DEPTH | glut.GLUT_DOUBLE | glut.GLUT_ALPHA)
-    glut.glutInitWindowSize(WIDTH, HEIGHT)
-    glut.glutCreateWindow("BRACO GARRA")
+    glut.glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+    glut.glutCreateWindow("Braco Robotico")
     glut.glutPositionWindow(400, 400)
 
 
@@ -68,7 +103,14 @@ def load_texture(image_path: Path) -> int:
     # segundo o OpenCV a imagem está em BGR
     image: np.ndarray = cv2.imread(str(image_path))
 
+    """crio um id de textura
+      digo ao OpenGL para selecionar a textura
+      carrego a textura no formado de imagem
+      configuro os parâmetros da textura
+
+       """
     texture = gl.glGenTextures(1)
+
     gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
 
     gl.glTexImage2D(gl.GL_TEXTURE_2D,
@@ -99,44 +141,48 @@ def load_texture(image_path: Path) -> int:
     return texture
 
 
-def load_textures():
-    global FLOOR_TEXTURE_ID, METAL_TEXTURE_ID
-
-    FLOOR_TEXTURE_ID = load_texture(FLOOR_IMAGE)
-
-    METAL_TEXTURE_ID = load_texture(METAL_IMAGE)
-
-
 def main():
 
     window_init()
 
     opengl_init()
 
-    load_textures()
     camera = Camera()
 
-    # arm = ArmGL(texture_id=METAL_TEXTURE_ID, arm_model=arm_model.draw_arm)
+    """instanciado os anglos do braço, por padrão é tudo 0 graus"""
     arm_angles = ArmAngles()
     keyboard_controler = KeyboardController(arm_angles, camera)
-    """"Para criar o Braço preciso ter inicializado a janela GLUT e OpenGL"""
+
+    """
+        Carregando as texturas, no caso estamos utilizando o OpenCV para
+        carrega-las e por conveniências ambas as texturas tem os mesmos parâmetros.
+    """
+
+    floor_texture_id = load_texture(FLOOR_IMAGE_PATH)
+
+    arm_texture_id = load_texture(METAL_IMAGE_PATH)
 
     def display():
         """
             Callback de visualização da  janela glut
-            Basicamente  limbo a tela, posiciono a camera e desenho o braço e chão.
+            Basicamente  limbo a tela, posiciono a camera e 
+            desenho:
+                o braço,
+                o chão
+
+            digo para o gesto GLUT, para trocar o buffer background para o front (glutSwapBuffers)
+            mando ele chamadar a função display novamente. (glutPostRedisplay)
         """
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glPushMatrix()
 
-        camera.look_at()
+        camera.look_at()  # basicamente é a função gluLookAt com as posições e orientações da câmera
 
-        floor_model.draw_floor(FLOOR_TEXTURE_ID)
+        floor_model.draw_floor(floor_texture_id)
 
         gl.glTranslatef(-3.0, 0.5, 0.0)
-        arm_model.draw_arm(arm_angles, METAL_TEXTURE_ID)
-        # arm.show()
+        arm_model.draw_arm(arm_angles, arm_texture_id)
 
         gl.glPopMatrix()
 
@@ -152,10 +198,14 @@ def main():
     """ conjunto de funções do gerenciador de janelas"""
     glut.glutDisplayFunc(display)
     glut.glutReshapeFunc(reshape)
+    """
+       normal_keys_handler, special_keys_handler
+       são funções callbacks que são chamadas no momento que eu pressiono uma tecla.
+    """
     glut.glutKeyboardFunc(normal_keys_handler)
     glut.glutSpecialFunc(special_keys_handler)
 
-    glut.glutMainLoop()
+    glut.glutMainLoop()  # sequesta a aplicação até fechar a janela.
 
 
 if __name__ == '__main__':
