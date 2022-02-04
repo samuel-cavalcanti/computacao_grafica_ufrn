@@ -1,20 +1,27 @@
 
+
+from pathlib import Path
 from typing import Optional
 from OpenGL import GL as gl
 from OpenGL import GLU as glu
 from OpenGL import GLUT as glut
 
-from arm_gl import ArmGL
 from camera import Camera
 import numpy as np
 import cv2
+
 from keyboard_controler import KeyboardController
+from gl_models import arm_model, floor_model
+from arm_angles import ArmAngles
+
 
 WIDTH = 800
 HEIGHT = 600
 
 FLOOR_TEXTURE_ID: Optional[int] = None
 METAL_TEXTURE_ID: Optional[int] = None
+FLOOR_IMAGE = Path('images').joinpath('piso_2.jpeg')
+METAL_IMAGE = Path('images').joinpath('metal.jpeg')
 
 
 def reshape(width: int,  height: int):
@@ -53,8 +60,13 @@ def window_init():
     glut.glutPositionWindow(400, 400)
 
 
-def load_texture(image_path: str) -> int:
-    image: np.ndarray = cv2.imread(image_path)  # segundo o OpenCV está em BGR
+def load_texture(image_path: Path) -> int:
+    """
+        carrega uma textura por uma image em qualquer formato suportado pelo OpenCV. 
+    """
+
+    # segundo o OpenCV a imagem está em BGR
+    image: np.ndarray = cv2.imread(str(image_path))
 
     texture = gl.glGenTextures(1)
     gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
@@ -69,6 +81,13 @@ def load_texture(image_path: str) -> int:
                     gl.GL_UNSIGNED_BYTE,
                     image)
 
+    """
+        Basicamente glTexParameteri eu configuro os parâmetros da textura
+        GL_REPEAT, implica que vou repetindo a mesma imagem infinitamente e
+        GL_NEAREST, implica que a cor do pixel mais próxima é que vai ser escolhida
+        é mais fácil de visualizar na referência:  https://learnopengl.com/Getting-started/Textures
+
+    """
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
 
@@ -83,79 +102,52 @@ def load_texture(image_path: str) -> int:
 def load_textures():
     global FLOOR_TEXTURE_ID, METAL_TEXTURE_ID
 
-    FLOOR_TEXTURE_ID = load_texture('piso_2.jpeg')
+    FLOOR_TEXTURE_ID = load_texture(FLOOR_IMAGE)
 
-    METAL_TEXTURE_ID = load_texture('metal.jpeg')
+    METAL_TEXTURE_ID = load_texture(METAL_IMAGE)
 
 
 def main():
 
-   
-    
-    
     window_init()
 
     opengl_init()
 
     load_textures()
     camera = Camera()
-    arm = ArmGL(texture_id=METAL_TEXTURE_ID)
-    keyboard_controler = KeyboardController(arm, camera)
+
+    # arm = ArmGL(texture_id=METAL_TEXTURE_ID, arm_model=arm_model.draw_arm)
+    arm_angles = ArmAngles()
+    keyboard_controler = KeyboardController(arm_angles, camera)
     """"Para criar o Braço preciso ter inicializado a janela GLUT e OpenGL"""
-    arm.make_arm()
 
     def display():
+        """
+            Callback de visualização da  janela glut
+            Basicamente  limbo a tela, posiciono a camera e desenho o braço e chão.
+        """
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glPushMatrix()
 
         camera.look_at()
 
-        gl.glColor4f(1.0, 1.0, 1.0, 1.0)
-        gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, FLOOR_TEXTURE_ID)
-        gl.glBegin(gl.GL_QUADS)
-
-        """
-        (10,-10)--------------------------(-10,-10)             
-            |                             |     
-            |                             | 
-            |                             |
-        (10.10) ------------------------(-10,10) #(x,z)
-        """
-
-        gl.glTexCoord2fv([0.0, 0.0])
-        gl.glVertex3f(10, 0, 10)
-
-        gl.glTexCoord2fv([1.0, 0.0])  # (x,y)
-        gl.glVertex3f(-10, 0, 10)
-
-        gl.glTexCoord2fv([1.0, 1.0])
-        gl.glVertex3f(-10, 0, -10)
-
-        gl.glTexCoord2fv([0.0, 1.0])
-        gl.glVertex3f(10, 0, -10)
-
-        gl.glEnd()
+        floor_model.draw_floor(FLOOR_TEXTURE_ID)
 
         gl.glTranslatef(-3.0, 0.5, 0.0)
-        gl.glCallList(arm.arm_id)
-        gl.glPopMatrix()
+        arm_model.draw_arm(arm_angles, METAL_TEXTURE_ID)
+        # arm.show()
 
-        arm.make_arm()
+        gl.glPopMatrix()
 
         glut.glutSwapBuffers()
         glut.glutPostRedisplay()
 
     def normal_keys_handler(key: bytes, x: int, y: int):
-        print('key', key)
-        if keyboard_controler.key_press(key):
-            glut.glutPostRedisplay()
+        keyboard_controler.key_press(key)
 
     def special_keys_handler(key: int, x: int, y: int):
-        if keyboard_controler.special_key_press(key):
-            glut.glutPostRedisplay()
+        keyboard_controler.special_key_press(key)
 
     """ conjunto de funções do gerenciador de janelas"""
     glut.glutDisplayFunc(display)

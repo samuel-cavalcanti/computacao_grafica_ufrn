@@ -16,6 +16,11 @@ python -m unittest discover  -v
 pip install -r requirements.txt
 ```
 
+## execução da aplicação:
+```shell
+python  src/main.py    
+```
+
 ### Controle do braço
 
 - A aumenta o angulo do ombro
@@ -30,4 +35,4 @@ pip install -r requirements.txt
 Setinhas, esquerda, direita, frente e trás controla a visão da camera.
 
 
-![imagem_exemplo](imagem_exemplo.jpeg)
+![imagem_exemplo](images/imagem_exemplo.jpeg)
