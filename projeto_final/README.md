@@ -16,6 +16,9 @@ python -m unittest discover  -v
 pip install -r requirements.txt
 ```
 
+## Observações
+Foi utilizado a versão __3.10__ do python 
+
 ## execução da aplicação:
 ```shell
 python  src/main.py    
