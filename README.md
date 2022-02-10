@@ -16,4 +16,4 @@ Link para os exercícios do professor Luiz Marcos: [Exercícios](https://www.dca
 
 Uma aplicação 3D simples que simula um braço robótico:
 
-[Simulação do Braço robótico](projeto_final/)
+[Simulação do Braço robótico](projeto_final_computacao_grafica_ufrn/)
